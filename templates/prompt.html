@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Page Title</title>
+</head>
+<body>
+    <h1> Write your prompt here </h1>
+
+    <form method="POST" action="{{ url_for('prompt') }}">
+        <input type="text" name="prompt" placeholder="Write your prompt..." required>
+        <button type="submit">Send</button>
+    </form>
+</body>
+</html>

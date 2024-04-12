@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask AI Chatbot</title>
+</head>
+<body>
+    <h1>Flask AI Chatbot</h1>
+    <div id="chat-container">
+        <div id="user-messages">
+            {% if user_text %}
+                <p>You: {{ user_text }}</p>
+            {% endif %}
+        </div>
+        <div id="ai-messages">
+            {% if ai_text %}
+                <p>Shazia: {{ ai_text }}</p>
+            {% endif %}
+        </div>
+    </div>
+    <form method="POST">
+        <input type="text" name="user_input" placeholder="Type your message here..." required>
+        <button type="submit">Send</button>
+    </form>
+</body>
+</html>
