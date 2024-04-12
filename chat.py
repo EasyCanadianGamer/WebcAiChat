@@ -51,7 +51,7 @@ while True:
         })
 
 
-    print("Shazia: "+ response.text)
+    print("ChatBot: "+ response.text)
 
 
     
