@@ -1,2 +1,11 @@
 flask
 google-generativeai 
+IPython
+Authlib_Flask
+flask-login
+flask-sqlalchemy
+flask-avatars
+flask-moment
+flask_filealchemy
+flask_admin
+flask_migrate
