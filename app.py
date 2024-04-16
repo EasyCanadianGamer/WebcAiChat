@@ -3,7 +3,7 @@ import textwrap
 import google.generativeai as genai
 from IPython.display import display, Markdown
 from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
-import uuid
+import uuid as uuid
 import firebase_admin
 import requests
 from authlib.integrations.flask_client import OAuth
@@ -22,17 +22,12 @@ import flask_admin
 from flask_admin import Admin
 from werkzeug.utils import secure_filename
 from flask_migrate import Migrate
+from werkzeug.utils import secure_filename
+import os
+from PIL import Image
 
 
-# import firebase_admin
-# from firebase_admin import credentials
-# import firebase
-# from firebase_admin import auth
-# from firebase_admin import exceptions
-# from tests import testutils
-
-
-GOOGLE_API_KEY = "INSET_API_KEY"
+GOOGLE_API_KEY = "API_KEY"
 genai.configure(api_key=GOOGLE_API_KEY)
 MODEL_NAME = "gemini-1.5-pro-latest"
 
@@ -52,7 +47,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 
 
 app.config['SECRET_KEY'] = secret_key
-
 
 db = SQLAlchemy()
 migrate  = Migrate(app,db)
@@ -79,7 +73,7 @@ class Users(UserMixin, db.Model):
                          nullable=False)
     bio = db.Column(db.String(1000),nullable = False )
 
-    profile_pic =db.Column(db.String(500),nullable = True )
+    profile_pic =db.Column(db.String(),nullable = True )
 
     data_added = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -197,6 +191,9 @@ def admin():
 
 
 
+
+
+
 @app.route('/update/<int:id>', methods=['GET','POST'] )
 @login_required
 def update(id):
@@ -206,21 +203,44 @@ def update(id):
     if request.method == "POST":
         name_to_update.email = request.form.get("email")
         name_to_update.username = request.form.get("username")
-        name_to_update.bio = request.form.get('bio')
-        name_to_update.profile_pic=request.files.get('formFile')
-        try:
-            db.session.commit()
-                 # Add the user to the database
-            flash("User Updated Successfully!")
-            return render_template("update.html", name_to_update = name_to_update, id=id)
+        name_to_update.bio = request.form.get('bio') 
 
-                
-        except:
-            flash("Error!  Looks like there was a problem...try again!")
-            return render_template("update.html", name_to_update = name_to_update,id=id)
+
+        if request.files.get('file'):
+            name_to_update.profile_pic = request.files.get('file')
+            #grabe Image name
+            pic_filename = secure_filename(name_to_update.profile_pic.filename) 
+            #set uuiud
+            pic_name = str(uuid.uuid1()) +  "_" + pic_filename
+            #save image 
+            saver = request.files['file']
+            
+            name_to_update.profile_pic = pic_name
+            
+            save_pfp = os.path.join(app.config['UPLOAD_FOLDER'], pic_name)
+
+            try:
+                db.session.commit()
+
+                output_size = (150, 150)
+
+                i = Image.open( request.files['file'])
+                i.thumbnail(output_size)
+                i.save(save_pfp)
+
+                flash("User Updated Successfully!")
+                return render_template("update.html", name_to_update = name_to_update, id=id)
+            except:
+                flash("Error!  Looks like there was a problem...try again!")
+                return render_template("update.html", name_to_update = name_to_update, id =id)
+        else:
+            db.session.commit()
+            flash("User update successfully!")
+            return render_template("update.html", name_to_update = name_to_update, id =id)
     else:
-            # Renders sign_up template if user made a GET request
         return render_template("update.html", name_to_update = name_to_update, id = id )
+
+    return render_template("update.html", name_to_update = name_to_update, id = id )
 
 
 

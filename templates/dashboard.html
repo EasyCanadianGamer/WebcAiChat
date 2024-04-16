@@ -24,12 +24,29 @@
 
     <div class="container text-center mt-5">
         {% if current_user.is_authenticated %}
+
+
+
+        <div class="col-15">
+          {% if current_user.profile_pic %}
+      
+          <img src="{{url_for('static', filename = 'imgs/' + current_user.profile_pic)}}" alt="Profile Picture" class="rounded-circle mr-3" width="150" height="150">
+          
+          {% else %}
+      
         <img src="https://via.placeholder.com/150" alt="Profile Picture" class="rounded-circle mr-3" width="150" height="150">
+      
+          {% endif %}
+        
+        </div>
+
+
+
         <h1>Welcome, {{ current_user.username }}!</h1>
 
 
-
         <div class="col-md-15 text-center">
+          <p>ProfilePic: {{ current_user.profile_pic }}!</p>
           <div class="card mx-auto" style="width: 18rem;">
           <div class="card-body ">
           <h5 class="card-title">Bio</h5>
