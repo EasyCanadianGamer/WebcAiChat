@@ -27,7 +27,7 @@ import os
 from PIL import Image
 
 
-GOOGLE_API_KEY = "API_KEY"
+GOOGLE_API_KEY = "Insert_API_KEY HERE"
 genai.configure(api_key=GOOGLE_API_KEY)
 MODEL_NAME = "gemini-1.5-pro-latest"
 
@@ -36,6 +36,7 @@ secret_key = secrets.token_bytes(32)
 
 
 UPLOAD_FOLDER = 'static/imgs/'
+UPLOAD_BOTFOLDER = 'static/bot_imgs/'
 
 
 
@@ -56,9 +57,27 @@ login_manager.init_app(app)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+app.config['UPLOAD_2FOLDER'] = UPLOAD_BOTFOLDER
 
 
 
+#create a bot model
+
+class Bots(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(250), unique=True, 
+                         nullable=False)
+    bio = db.Column(db.String(1000),nullable = False )
+
+    prompt = db.Column(db.String(), nullable = False)
+
+    profile_pic =db.Column(db.String(),nullable = True )
+
+    privacy=db.Column(db.String(10),nullable = True )
+
+    data_added = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Create user model
 class Users(UserMixin, db.Model):
@@ -170,7 +189,6 @@ def logout():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dash():
-
     id = current_user.id
     return render_template("dashboard.html")
 
@@ -187,6 +205,12 @@ def admin():
 	else:
 		flash("Sorry you must be the Admin to access the Admin Page...")
 		return redirect(url_for('dashboard'))
+
+
+
+
+
+
 
 
 
@@ -254,15 +278,59 @@ def delete():
     return render_template("/delete.html")
 
 
-@app.route('/prompt', methods=['GET', 'POST'])
-@login_required
-def prompt():
+
+
+
+
+@app.route('/add_bot', methods=['GET', 'POST'])
+def add_bot():
     global model
+    #id =current_user.id
+    name_to_update = Bots.query.get_or_404(id)
     if request.method == 'POST':
-        prompt = request.form['prompt']
+        name_to_update.name = request.form.get('name')
+        name_to_update.bio = request.form.get('bio')
+        name_to_update.prompt = request.form.get('prompt')
+        name_to_update.privacy = request.form.get('priv')
+
+        if request.files.get('file'):
+            name_to_update.profile_pic = request.files.get('file')
+            #grabe Image name
+            pic_filename = secure_filename(name_to_update.profile_pic.filename) 
+            #set uuiud
+            pic_name = str(uuid.uuid1()) +  "_" + pic_filename
+            #save image 
+            saver = request.files['file']
+            
+            name_to_update.profile_pic = pic_name
+            
+            save_pfp = os.path.join(app.config['UPLOAD_FOLDER'], pic_name)
+
+            try:
+                db.session.commit()
+
+                output_size = (150, 150)
+
+                i = Image.open( request.files['file'])
+                i.thumbnail(output_size)
+                i.save(save_pfp)
+
+                flash("Bot created Successfully!")
+                return redirect(url_for('dash'), name_to_update = name_to_update, id=id)
+            except:
+                flash("Error!  Looks like there was a problem...try again!")
+                return redirect(url_for('dash'), name_to_update = name_to_update, id =id)
+        else:
+            db.session.commit()
+            flash("Bot created  successfully!")
+            return redirect(url_for('dash'), name_to_update = name_to_update, id =id)
+    else:
+        return redirect(url_for('dash'), name_to_update = name_to_update, id = id )
+
+        
         model = genai.GenerativeModel(MODEL_NAME, system_instruction=prompt)
-        return redirect(url_for('chatbot'))
-    return render_template('prompt.html')
+        # return redirect(url_for('dash'))
+    return render_template('bot_maker.html')
 
 
 
