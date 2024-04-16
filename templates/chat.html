@@ -6,6 +6,7 @@
     <title>Flask AI Chatbot</title>
 </head>
 <body>
+    {% if current_user.is_authenticated %}
     <h1>Flask AI Chatbot</h1>
     <div id="chat-container">
         <div id="user-messages">
@@ -23,5 +24,10 @@
         <input type="text" name="user_input" placeholder="Type your message here..." required>
         <button type="submit">Send</button>
     </form>
+    {%else%}
+
+    <p> GoNNA CUM</p>
+
+    {%endif%}
 </body>
 </html>
